@@ -1,6 +1,6 @@
-"use client";
+"use client"; // must be first line
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type Flashcard = {
@@ -15,7 +15,7 @@ const flashcards: Flashcard[] = [
   { question: "Which company developed Java?", answer: "Sun Microsystems" },
 ];
 
-export default function FlashcardFrenzy() {
+export default function HomePage() {
   const [score, setScore] = useState(0);
   const [current, setCurrent] = useState(0);
   const [answer, setAnswer] = useState("");
@@ -38,7 +38,6 @@ export default function FlashcardFrenzy() {
 
     setAnswer("");
 
-    // Wait 0.5s for flash animation before moving to next question
     setTimeout(() => {
       setFlashStatus(null);
       setCurrent((prev) => prev + 1);
@@ -96,12 +95,12 @@ export default function FlashcardFrenzy() {
             placeholder="Your Answer..."
             className="border p-2 rounded w-full text-center mb-4"
             onKeyDown={(e) => e.key === "Enter" && handleAnswer()}
-            disabled={!!flashStatus} // prevent typing during flash
+            disabled={!!flashStatus}
           />
           <button
             onClick={handleAnswer}
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-            disabled={!!flashStatus} // prevent clicking during flash
+            disabled={!!flashStatus}
           >
             Submit
           </button>

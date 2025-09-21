@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+"use client"; // must be first line
+
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Flashcard = {
   question: string;
   answer: string;
 };
 
-// Sample flashcards
 const flashcards: Flashcard[] = [
   { question: "OOP stands for?", answer: "Object Oriented Programming" },
   { question: "Python is interpreted or compiled?", answer: "Interpreted" },
@@ -13,148 +15,102 @@ const flashcards: Flashcard[] = [
   { question: "Which company developed Java?", answer: "Sun Microsystems" },
 ];
 
-export default function FlashcardFrenzy() {
-  const [mode, setMode] = useState<"menu" | "single" | "multi">("menu");
+export default function HomePage() {
   const [score, setScore] = useState(0);
   const [current, setCurrent] = useState(0);
-  const [players, setPlayers] = useState(2);
-  const [turn, setTurn] = useState(0);
-  const [multiScores, setMultiScores] = useState<number[]>([]);
-
   const [answer, setAnswer] = useState("");
+  const [flashStatus, setFlashStatus] = useState<"correct" | "wrong" | null>(
+    null
+  );
 
-  // Reset game
-  const resetGame = () => {
-    setScore(0);
-    setCurrent(0);
-    setTurn(0);
-    setMultiScores(Array(players).fill(0));
-    setAnswer("");
-  };
+  const handleAnswer = () => {
+    if (current >= flashcards.length) return;
 
-  // Handle answer
-  const handleAnswer = (isMulti: boolean) => {
-    const correct = answer.trim().toLowerCase() === flashcards[current].answer.toLowerCase();
+    const isCorrect =
+      answer.trim().toLowerCase() ===
+      flashcards[current].answer.toLowerCase();
 
-    if (isMulti) {
-      const updated = [...multiScores];
-      if (correct) updated[turn] += 1;
-      setMultiScores(updated);
-      setTurn((turn + 1) % players);
-    } else {
-      if (correct) setScore(score + 1);
+    setFlashStatus(isCorrect ? "correct" : "wrong");
+
+    if (isCorrect) {
+      setScore((prev) => prev + 1);
     }
 
     setAnswer("");
-    setCurrent(current + 1);
+
+    setTimeout(() => {
+      setFlashStatus(null);
+      setCurrent((prev) => prev + 1);
+    }, 500);
   };
 
-  // Menu
-  if (mode === "menu") {
+  if (current >= flashcards.length) {
     return (
-      <div className="flex flex-col items-center gap-4 p-6">
-        <h1 className="text-3xl font-bold">🎮 Flashcard Frenzy</h1>
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            resetGame();
-            setMode("single");
-          }}
-        >
-          Single Player
-        </button>
-        <button
-          className="bg-green-500 text-white px-4 py-2 rounded"
-          onClick={() => {
-            resetGame();
-            setMode("multi");
-          }}
-        >
-          Multiplayer
-        </button>
-      </div>
-    );
-  }
-
-  // Single Player Mode
-  if (mode === "single") {
-    if (current >= flashcards.length) {
-      return (
-        <div className="p-6 text-center">
-          <h2 className="text-xl">🎯 Final Score: {score}/{flashcards.length}</h2>
-          <button className="mt-4 bg-gray-600 text-white px-4 py-2 rounded" onClick={() => setMode("menu")}>
-            Back to Menu
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">
+            🎯 Final Score: {score}/{flashcards.length}
+          </h2>
+          <button
+            onClick={() => {
+              setScore(0);
+              setCurrent(0);
+              setAnswer("");
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Restart Quiz
           </button>
         </div>
-      );
-    }
-
-    return (
-      <div className="p-6 text-center">
-        <h2 className="text-lg font-semibold">{flashcards[current].question}</h2>
-        <input
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Your Answer..."
-          className="border p-2 mt-3 rounded"
-        />
-        <button
-          onClick={() => handleAnswer(false)}
-          className="ml-2 bg-blue-600 text-white px-3 py-1 rounded"
-        >
-          Submit
-        </button>
-        <p className="mt-3">Score: {score}</p>
       </div>
     );
   }
 
-  // Multiplayer Mode
-  if (mode === "multi") {
-    if (current >= flashcards.length) {
-      const winnerIndex = multiScores.indexOf(Math.max(...multiScores));
-      return (
-        <div className="p-6 text-center">
-          <h2 className="text-xl font-bold">🏆 Final Scores</h2>
-          {multiScores.map((s, i) => (
-            <p key={i}>
-              Player {i + 1}: {s}
-            </p>
-          ))}
-          <h3 className="mt-2">🥇 Winner: Player {winnerIndex + 1}</h3>
-          <button className="mt-4 bg-gray-600 text-white px-4 py-2 rounded" onClick={() => setMode("menu")}>
-            Back to Menu
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+          className={`text-center p-6 border rounded-xl shadow-lg w-full max-w-md
+            ${
+              flashStatus === "correct"
+                ? "bg-green-200 border-green-500"
+                : flashStatus === "wrong"
+                ? "bg-red-200 border-red-500"
+                : "bg-white"
+            }`}
+        >
+          <h1 className="text-3xl font-bold mb-6">🎮 Flashcard Frenzy</h1>
+          <h2 className="text-lg font-semibold mb-4">
+            {flashcards[current].question}
+          </h2>
+
+          <input
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Your Answer..."
+            className="border p-2 rounded w-full text-center mb-4"
+            onKeyDown={(e) => e.key === "Enter" && handleAnswer()}
+            disabled={!!flashStatus}
+          />
+          <button
+            onClick={handleAnswer}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            disabled={!!flashStatus}
+          >
+            Submit
           </button>
-        </div>
-      );
-    }
 
-    return (
-      <div className="p-6 text-center">
-        <h2 className="text-lg font-semibold">{flashcards[current].question}</h2>
-        <p className="mb-2">👤 Player {turn + 1}'s turn</p>
-        <input
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Your Answer..."
-          className="border p-2 mt-3 rounded"
-        />
-        <button
-          onClick={() => handleAnswer(true)}
-          className="ml-2 bg-green-600 text-white px-3 py-1 rounded"
-        >
-          Submit
-        </button>
-        <div className="mt-3">
-          {multiScores.map((s, i) => (
-            <p key={i}>
-              Player {i + 1}: {s}
-            </p>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+          <p className="mt-4 text-lg">Score: {score}</p>
+          <p className="text-gray-500 mt-1">
+            Question {current + 1} of {flashcards.length}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
 }
